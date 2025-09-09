@@ -8,6 +8,12 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ selectedDate, onDateChange, onOpenExportModal }) => {
+  const formattedDate = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
   return (
     <header className="bg-gray-800/50 backdrop-blur-sm sticky top-0 z-20 border-b border-gray-700">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4 py-4">
@@ -24,14 +30,21 @@ export const Header: React.FC<HeaderProps> = ({ selectedDate, onDateChange, onOp
             Export
           </button>
           <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-               <CalendarIcon className="h-5 w-5 text-gray-400" />
-            </span>
+            <label 
+              htmlFor="date-picker-header" 
+              className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-md text-sm font-semibold hover:bg-gray-600 transition-colors focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-900 focus-within:ring-purple-500 cursor-pointer"
+              aria-label={`Change date, currently selected: ${formattedDate}`}
+            >
+              <CalendarIcon className="h-5 w-5 text-gray-400" />
+              <span>{formattedDate}</span>
+            </label>
             <input
+              id="date-picker-header"
               type="date"
               value={selectedDate}
               onChange={(e) => onDateChange(e.target.value)}
-              className="pl-10 pr-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-200"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              aria-hidden="true"
             />
           </div>
         </div>

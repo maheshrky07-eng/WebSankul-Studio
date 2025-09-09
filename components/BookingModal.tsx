@@ -157,12 +157,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, mod
   };
   
   const dateLimits = useMemo(() => {
+    const formatDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     const today = new Date();
-    // Prevent timezone issues from making "today" yesterday
-    today.setHours(0, 0, 0, 0);
-    const minDate = today.toISOString().split('T')[0];
-    today.setDate(today.getDate() + 6); // Today + 6 days = 7 day window
-    const maxDate = today.toISOString().split('T')[0];
+    const minDate = formatDate(today);
+    
+    const maxDateObj = new Date();
+    maxDateObj.setDate(today.getDate() + 6); // Today + 6 days = 7 day window
+    const maxDate = formatDate(maxDateObj);
+
     return { minDate, maxDate };
   }, []);
 
