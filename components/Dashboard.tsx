@@ -23,17 +23,19 @@ const BookingRow: React.FC<{ booking: Booking; onOpenModal: (data: ModalData) =>
   return (
     <div
       onClick={() => onOpenModal({ studio: booking.studio, startTime: booking.startTime, booking })}
-      className={`p-3 rounded-md cursor-pointer flex items-center gap-4 border-l-4 transition-colors hover:bg-gray-700/50 ${getPurposeColorClasses(booking.recordingPurpose)}`}
+      className={`p-3 rounded-md cursor-pointer flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 border-l-4 transition-colors hover:bg-gray-700/50 ${getPurposeColorClasses(booking.recordingPurpose)}`}
     >
-      <div className="font-mono text-sm w-36 text-gray-300">
+      <div className="font-mono text-sm sm:w-36 text-gray-300 flex-shrink-0">
         {formatTimeTo12Hour(booking.startTime)} - {formatTimeTo12Hour(booking.endTime)}
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="font-semibold text-white truncate">{booking.name}</div>
-        <div className="text-sm text-gray-400 truncate">{booking.subject}</div>
-      </div>
-      <div className="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-300 whitespace-nowrap">
-        {booking.recordingPurpose}
+      <div className="flex-1 min-w-0 w-full flex justify-between items-center gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-white truncate">{booking.name}</div>
+          <div className="text-sm text-gray-400 truncate">{booking.subject}</div>
+        </div>
+        <div className="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-300 whitespace-nowrap">
+          {booking.recordingPurpose}
+        </div>
       </div>
     </div>
   );
@@ -58,7 +60,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ studios, bookings, onOpenM
         const studioBookings = bookingsByStudio.get(studio.id) || [];
         return (
           <div key={studio.id} className="bg-gray-800 rounded-lg shadow-lg flex flex-col min-h-[200px]">
-            <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+            <div className="p-4 border-b border-gray-700 flex flex-wrap gap-2 justify-between items-center">
               <h2 className="text-lg font-bold text-white">{studio.name}</h2>
               <button
                 onClick={() => onOpenModal({ studio: studio.id })}
