@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({ selectedDate, onDateChange, onOp
 
   return (
     <header className="bg-gray-800/50 backdrop-blur-sm sticky top-0 z-20 border-b border-gray-700">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4 py-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-start sm:flex-row sm:items-center sm:justify-between gap-4 py-4">
         <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
           Websankul Studio
         </h1>
