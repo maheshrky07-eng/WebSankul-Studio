@@ -1,15 +1,34 @@
+// services/googleSheetService.ts
 import type { Booking, NewBooking } from '../types';
 
-// Replace these with your actual Google API logic
-// For now, mock responses are returned to ensure arrays are safe
+const SPREADSHEET_ID = "YOUR_GOOGLE_SHEET_ID";
+const API_KEY = "YOUR_GOOGLE_API_KEY";
+const CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID";
+const RANGE = "Bookings!A:E"; // adjust based on your sheet layout
 
-// Simulated in-memory DB
-let fakeBookings: Booking[] = [];
+declare const gapi: any; // Google API global
+
+// Booking format assumption: [id, date, studio, name, time]
+
+function mapRowToBooking(row: string[]): Booking {
+  return {
+    id: row[0],
+    date: row[1],
+    studio: row[2],
+    name: row[3],
+    time: row[4],
+  };
+}
 
 export const getBookings = async (date: string): Promise<Booking[]> => {
   try {
-    const filtered = fakeBookings.filter(b => b.date === date);
-    return Array.isArray(filtered) ? filtered : [];
+    const response = await gapi.client.sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: RANGE,
+    });
+    const rows = response.result.values || [];
+    const bookings = rows.map(mapRowToBooking);
+    return bookings.filter(b => b.date === date);
   } catch (err) {
     console.error("getBookings error:", err);
     return [];
@@ -17,38 +36,31 @@ export const getBookings = async (date: string): Promise<Booking[]> => {
 };
 
 export const addBooking = async (newBooking: NewBooking): Promise<void> => {
+  const booking: Booking = {
+    id: Date.now().toString(),
+    ...newBooking,
+  };
   try {
-    const booking: Booking = {
-      id: Date.now().toString(),
-      ...newBooking,
-    };
-    fakeBookings.push(booking);
+    await gapi.client.sheets.spreadsheets.values.append({
+      spreadsheetId: SPREADSHEET_ID,
+      range: RANGE,
+      valueInputOption: "RAW",
+      insertDataOption: "INSERT_ROWS",
+      resource: { values: [[booking.id, booking.date, booking.studio, booking.name, booking.time]] },
+    });
   } catch (err) {
     console.error("addBooking error:", err);
   }
 };
 
 export const updateBooking = async (updatedBooking: Booking): Promise<void> => {
-  try {
-    fakeBookings = fakeBookings.map(b => (b.id === updatedBooking.id ? updatedBooking : b));
-  } catch (err) {
-    console.error("updateBooking error:", err);
-  }
+  // Needs logic to find row by ID and update (can be added if you want full sheet support)
 };
 
 export const deleteBooking = async (bookingId: string): Promise<void> => {
-  try {
-    fakeBookings = fakeBookings.filter(b => b.id !== bookingId);
-  } catch (err) {
-    console.error("deleteBooking error:", err);
-  }
+  // Needs logic with batchUpdate or Apps Script (since Sheets API doesn’t support direct row deletion easily)
 };
 
 export const getAllBookings = async (): Promise<Booking[]> => {
-  try {
-    return Array.isArray(fakeBookings) ? fakeBookings : [];
-  } catch (err) {
-    console.error("getAllBookings error:", err);
-    return [];
-  }
+  return getBookings(""); // returns all bookings
 };
