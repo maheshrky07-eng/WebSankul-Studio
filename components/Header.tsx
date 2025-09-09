@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarIcon, DownloadIcon } from './icons';
+import { DownloadIcon } from './icons';
 
 interface HeaderProps {
   selectedDate: string;
@@ -23,17 +23,12 @@ export const Header: React.FC<HeaderProps> = ({ selectedDate, onDateChange, onOp
             <DownloadIcon className="h-4 w-4" />
             Export
           </button>
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-               <CalendarIcon className="h-5 w-5 text-gray-400" />
-            </span>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => onDateChange(e.target.value)}
-              className="pl-10 pr-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-200"
-            />
-          </div>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => onDateChange(e.target.value)}
+            className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-200"
+          />
         </div>
       </div>
     </header>
