@@ -34,6 +34,24 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, mod
     return STUDIOS.find(s => s.id === modalData.studio)?.name || modalData.studio;
   }, [modalData.studio]);
 
+  const dateLimits = useMemo(() => {
+    const formatDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const today = new Date();
+    const minDate = formatDate(today);
+    
+    const maxDateObj = new Date();
+    maxDateObj.setDate(today.getDate() + 6); // Today + 6 days = 7 day window
+    const maxDate = formatDate(maxDateObj);
+
+    return { minDate, maxDate };
+  }, []);
+
   useEffect(() => {
     if (!modalData.studio || !formData.date) return;
 
@@ -64,16 +82,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, mod
         date: modalData.booking.date,
       });
     } else { // New booking
+      const isSelectedDateValid = selectedDate >= dateLimits.minDate && selectedDate <= dateLimits.maxDate;
       setFormData({
         name: '',
         recordingPurpose: RECORDING_PURPOSES[0],
         subject: '',
         startTime: '',
         endTime: '',
-        date: selectedDate,
+        date: isSelectedDateValid ? selectedDate : dateLimits.minDate,
       });
     }
-  }, [modalData, selectedDate]);
+  }, [modalData, selectedDate, dateLimits]);
 
   const allTimeSlots = useMemo(() => generateTimeSlots(), []);
 
@@ -155,24 +174,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, mod
       onDeleteBooking(modalData.booking.id);
     }
   };
-  
-  const dateLimits = useMemo(() => {
-    const formatDate = (date: Date): string => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-    const today = new Date();
-    const minDate = formatDate(today);
-    
-    const maxDateObj = new Date();
-    maxDateObj.setDate(today.getDate() + 6); // Today + 6 days = 7 day window
-    const maxDate = formatDate(maxDateObj);
-
-    return { minDate, maxDate };
-  }, []);
 
   if (!isOpen) return null;
 
