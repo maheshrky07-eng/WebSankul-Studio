@@ -8,6 +8,7 @@ import { STUDIOS } from './constants';
 import { getTodayDateString } from './utils/time';
 import { convertToCSV, downloadCSV } from './utils/csv';
 import type { Booking, NewBooking, ModalData } from './types';
+import { initRealtimeChannels, onBookingsChangeSignal, teardownRealtimeChannels } from './utils/realtime';
 
 const App: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
@@ -41,21 +42,21 @@ const App: React.FC = () => {
     fetchBookingsForDate(selectedDate);
   }, [selectedDate, fetchBookingsForDate]);
   
-  // Effect for synchronizing across tabs/windows
+  // Effect for synchronizing across tabs/windows using the new realtime utility
   useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      // The 'websankul_studio_bookings' key is defined in the service
-      if (event.key === 'websankul_studio_bookings') {
-        console.log('Bookings updated in another tab. Refreshing...');
+    initRealtimeChannels();
+
+    const handleBookingsChange = () => {
+        console.log('Bookings updated in another tab/window. Refreshing...');
         // Use the ref to ensure we fetch for the most current date
         fetchBookingsForDate(selectedDateRef.current);
-      }
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    const unsubscribe = onBookingsChangeSignal(handleBookingsChange);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      unsubscribe();
+      teardownRealtimeChannels();
     };
   }, [fetchBookingsForDate]);
 

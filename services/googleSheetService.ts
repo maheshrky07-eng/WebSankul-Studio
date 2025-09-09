@@ -1,5 +1,6 @@
 import type { Booking, NewBooking } from '../types';
 import { getTodayDateString } from '../utils/time';
+import { notifyBookingsChanged } from '../utils/realtime';
 
 const STORAGE_KEY = 'websankul_studio_bookings';
 
@@ -77,6 +78,7 @@ export const addBooking = async (newBookingData: NewBooking): Promise<Booking> =
 
     const updatedBookings = [...allBookings, newBooking];
     saveStoredBookings(updatedBookings);
+    notifyBookingsChanged();
     return newBooking;
 };
 
@@ -88,6 +90,7 @@ export const updateBooking = async (updatedBookingData: Booking): Promise<Bookin
     if (index !== -1) {
         allBookings[index] = updatedBookingData;
         saveStoredBookings(allBookings);
+        notifyBookingsChanged();
         return updatedBookingData;
     }
     throw new Error("Booking not found for update");
@@ -103,4 +106,5 @@ export const deleteBooking = async (id: string): Promise<void> => {
         throw new Error("Booking not found for deletion");
     }
     saveStoredBookings(allBookings);
+    notifyBookingsChanged();
 };
