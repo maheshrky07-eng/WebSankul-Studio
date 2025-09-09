@@ -1,0 +1,5 @@
+{
+  "name": "Websankul Studio",
+  "description": "A web app to manage booking of 7 studios with 30-minute slots from 8:00 AM to 11:30 PM, with simulated Google Sheets integration.",
+  "requestFramePermissions": []
+}
