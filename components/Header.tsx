@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { CalendarIcon, DownloadIcon } from './icons';
+import { getTodayDateString } from '../utils/time';
 
 interface HeaderProps {
   selectedDate: string;
@@ -31,26 +32,40 @@ export const Header: React.FC<HeaderProps> = ({ selectedDate, onDateChange, onOp
             <DownloadIcon className="h-4 w-4" />
             Export
           </button>
-          <div>
+          
+          <div className="flex items-center gap-3 border-l border-gray-700 pl-4">
+            <span className="text-sm font-medium text-gray-400 hidden lg:inline">Filter by Date:</span>
+            
             <button
               type="button"
-              onClick={() => dateInputRef.current?.showPicker?.()}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-md text-sm font-semibold hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-purple-500"
-              aria-label={`Change date, currently selected: ${formattedDate}`}
+              onClick={() => onDateChange(getTodayDateString())}
+              className="px-3 py-2 bg-gray-700 text-white rounded-md text-sm font-semibold hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-purple-500"
+              aria-label="Go to today's date"
             >
-              <CalendarIcon className="h-5 w-5 text-gray-400" />
-              <span>{formattedDate}</span>
+              Today
             </button>
-            <input
-              ref={dateInputRef}
-              id="date-picker-header"
-              type="date"
-              value={selectedDate}
-              onChange={(e) => onDateChange(e.target.value)}
-              className="sr-only"
-              aria-hidden="true"
-              tabIndex={-1}
-            />
+            
+            <div>
+              <button
+                type="button"
+                onClick={() => dateInputRef.current?.showPicker?.()}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-md text-sm font-semibold hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-purple-500"
+                aria-label={`Change date, currently selected: ${formattedDate}`}
+              >
+                <CalendarIcon className="h-5 w-5 text-gray-400" />
+                <span>{formattedDate}</span>
+              </button>
+              <input
+                ref={dateInputRef}
+                id="date-picker-header"
+                type="date"
+                value={selectedDate}
+                onChange={(e) => onDateChange(e.target.value)}
+                className="sr-only"
+                aria-hidden="true"
+                tabIndex={-1}
+              />
+            </div>
           </div>
         </div>
       </div>
