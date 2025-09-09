@@ -34,6 +34,30 @@ const App: React.FC = () => {
   useEffect(() => {
     fetchBookingsForDate(selectedDate);
   }, [selectedDate, fetchBookingsForDate]);
+  
+  // Effect for synchronizing across tabs/windows
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      // The 'websankul_studio_bookings' key is defined in the service
+      if (event.key === 'websankul_studio_bookings') {
+        console.log('Bookings updated in another tab. Refreshing...');
+        fetchBookingsForDate(selectedDate);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [selectedDate, fetchBookingsForDate]);
+
+
+  const handleDateChange = (newDate: string) => {
+    if (newDate) {
+        setSelectedDate(newDate);
+    }
+  };
 
   const handleOpenModal = (data: ModalData) => {
     setModalState({ isOpen: true, data });
@@ -48,7 +72,7 @@ const App: React.FC = () => {
       await addBooking(newBookingData);
       await fetchBookingsForDate(selectedDate);
       handleCloseModal();
-    } catch (error) {
+    } catch (error)      {
       console.error("Failed to add booking:", error);
       alert(error instanceof Error ? error.message : "An unknown error occurred.");
     }
@@ -102,7 +126,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-900 text-gray-200 font-sans">
       <Header 
         selectedDate={selectedDate} 
-        onDateChange={setSelectedDate}
+        onDateChange={handleDateChange}
         onOpenExportModal={() => setIsExportModalOpen(true)}
       />
       <main className="p-4 sm:p-6 lg:p-8">
