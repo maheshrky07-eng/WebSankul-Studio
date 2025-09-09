@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { BookingModal } from './components/BookingModal';
@@ -18,6 +18,12 @@ const App: React.FC = () => {
     data: null,
   });
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
+
+  // Use a ref to hold the latest selectedDate to avoid stale closures in event listeners
+  const selectedDateRef = useRef(selectedDate);
+  useEffect(() => {
+    selectedDateRef.current = selectedDate;
+  }, [selectedDate]);
 
   const fetchBookingsForDate = useCallback(async (date: string) => {
     setIsLoading(true);
@@ -41,7 +47,8 @@ const App: React.FC = () => {
       // The 'websankul_studio_bookings' key is defined in the service
       if (event.key === 'websankul_studio_bookings') {
         console.log('Bookings updated in another tab. Refreshing...');
-        fetchBookingsForDate(selectedDate);
+        // Use the ref to ensure we fetch for the most current date
+        fetchBookingsForDate(selectedDateRef.current);
       }
     };
 
@@ -50,7 +57,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [selectedDate, fetchBookingsForDate]);
+  }, [fetchBookingsForDate]);
 
 
   const handleDateChange = (newDate: string) => {
