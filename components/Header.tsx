@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { CalendarIcon, DownloadIcon } from './icons';
 
 interface HeaderProps {
@@ -8,6 +8,8 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ selectedDate, onDateChange, onOpenExportModal }) => {
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
   const formattedDate = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -29,22 +31,25 @@ export const Header: React.FC<HeaderProps> = ({ selectedDate, onDateChange, onOp
             <DownloadIcon className="h-4 w-4" />
             Export
           </button>
-          <div className="relative">
-            <label 
-              htmlFor="date-picker-header" 
-              className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-md text-sm font-semibold hover:bg-gray-600 transition-colors focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-900 focus-within:ring-purple-500 cursor-pointer"
+          <div>
+            <button
+              type="button"
+              onClick={() => dateInputRef.current?.showPicker?.()}
+              className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-md text-sm font-semibold hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-purple-500"
               aria-label={`Change date, currently selected: ${formattedDate}`}
             >
               <CalendarIcon className="h-5 w-5 text-gray-400" />
               <span>{formattedDate}</span>
-            </label>
+            </button>
             <input
+              ref={dateInputRef}
               id="date-picker-header"
               type="date"
               value={selectedDate}
               onChange={(e) => onDateChange(e.target.value)}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              className="sr-only"
               aria-hidden="true"
+              tabIndex={-1}
             />
           </div>
         </div>

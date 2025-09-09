@@ -35,6 +35,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, mod
   }, [modalData.studio]);
 
   const dateLimits = useMemo(() => {
+    // Helper to format a date as YYYY-MM-DD in the local timezone.
+    // HTML date inputs expect this format and work with local time.
     const formatDate = (date: Date): string => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -42,11 +44,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, mod
         return `${year}-${month}-${day}`;
     };
 
-    const today = new Date();
+    // Use a date object representing the start of today in the local timezone.
+    // This avoids timezone-related off-by-one errors near midnight.
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
     const minDate = formatDate(today);
-    
-    const maxDateObj = new Date();
-    maxDateObj.setDate(today.getDate() + 6); // Today + 6 days = 7 day window
+
+    // Calculate the max date, which is 6 days from today (making a 7-day window).
+    const maxDateObj = new Date(today);
+    maxDateObj.setDate(today.getDate() + 6);
     const maxDate = formatDate(maxDateObj);
 
     return { minDate, maxDate };
