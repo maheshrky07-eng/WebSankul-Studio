@@ -19,38 +19,40 @@ const App: React.FC = () => {
   });
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
-  // Ref to hold the latest date
+  // keep latest date in a ref
   const selectedDateRef = useRef(selectedDate);
   useEffect(() => {
     selectedDateRef.current = selectedDate;
   }, [selectedDate]);
 
+  // fetch bookings
   const fetchBookingsForDate = useCallback(async (date: string) => {
     setIsLoading(true);
     try {
       const fetchedBookings = await getBookings(date);
-      setBookings(fetchedBookings);
+      setBookings(Array.isArray(fetchedBookings) ? fetchedBookings : []);
     } catch (error) {
       console.error("Failed to fetch bookings:", error);
+      setBookings([]);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Load bookings when date changes
+  // load on mount/date change
   useEffect(() => {
     fetchBookingsForDate(selectedDate);
   }, [selectedDate, fetchBookingsForDate]);
 
-  // Polling to sync across users every 10s
+  // polling every 10s
   useEffect(() => {
     const interval = setInterval(() => {
       fetchBookingsForDate(selectedDateRef.current);
-    }, 10000); // 10 seconds
+    }, 10000);
     return () => clearInterval(interval);
   }, [fetchBookingsForDate]);
 
-  // Sync across tabs (same browser)
+  // sync across browser tabs
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'websankul_studio_bookings') {
@@ -59,9 +61,7 @@ const App: React.FC = () => {
       }
     };
     window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [fetchBookingsForDate]);
 
   const handleDateChange = (newDate: string) => {
@@ -149,7 +149,7 @@ const App: React.FC = () => {
         ) : (
           <Dashboard
             studios={STUDIOS}
-            bookings={bookings}
+            bookings={bookings || []}
             onOpenModal={handleOpenModal}
           />
         )}
