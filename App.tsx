@@ -8,7 +8,6 @@ import { STUDIOS } from './constants';
 import { getTodayDateString } from './utils/time';
 import { convertToCSV, downloadCSV } from './utils/csv';
 import type { Booking, NewBooking, ModalData } from './types';
-import { initRealtimeChannels, onBookingsChangeSignal, teardownRealtimeChannels } from './utils/realtime';
 
 const App: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
@@ -20,7 +19,7 @@ const App: React.FC = () => {
   });
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
-  // Use a ref to hold the latest selectedDate to avoid stale closures in event listeners
+  // Ref to hold the latest date
   const selectedDateRef = useRef(selectedDate);
   useEffect(() => {
     selectedDateRef.current = selectedDate;
@@ -38,33 +37,35 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Load bookings when date changes
   useEffect(() => {
     fetchBookingsForDate(selectedDate);
   }, [selectedDate, fetchBookingsForDate]);
-  
-  // Effect for synchronizing across tabs/windows using the new realtime utility
+
+  // Polling to sync across users every 10s
   useEffect(() => {
-    initRealtimeChannels();
+    const interval = setInterval(() => {
+      fetchBookingsForDate(selectedDateRef.current);
+    }, 10000); // 10 seconds
+    return () => clearInterval(interval);
+  }, [fetchBookingsForDate]);
 
-    const handleBookingsChange = () => {
-        console.log('Bookings updated in another tab/window. Refreshing...');
-        // Use the ref to ensure we fetch for the most current date
+  // Sync across tabs (same browser)
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'websankul_studio_bookings') {
+        console.log('Bookings updated in another tab. Refreshing...');
         fetchBookingsForDate(selectedDateRef.current);
+      }
     };
-
-    const unsubscribe = onBookingsChangeSignal(handleBookingsChange);
-
+    window.addEventListener('storage', handleStorageChange);
     return () => {
-      unsubscribe();
-      teardownRealtimeChannels();
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, [fetchBookingsForDate]);
 
-
   const handleDateChange = (newDate: string) => {
-    if (newDate) {
-        setSelectedDate(newDate);
-    }
+    if (newDate) setSelectedDate(newDate);
   };
 
   const handleOpenModal = (data: ModalData) => {
@@ -80,7 +81,8 @@ const App: React.FC = () => {
       await addBooking(newBookingData);
       await fetchBookingsForDate(selectedDate);
       handleCloseModal();
-    } catch (error)      {
+      localStorage.setItem('websankul_studio_bookings', Date.now().toString());
+    } catch (error) {
       console.error("Failed to add booking:", error);
       alert(error instanceof Error ? error.message : "An unknown error occurred.");
     }
@@ -88,12 +90,13 @@ const App: React.FC = () => {
 
   const handleUpdateBooking = async (updatedBookingData: Booking) => {
     try {
-        await updateBooking(updatedBookingData);
-        await fetchBookingsForDate(selectedDate);
-        handleCloseModal();
+      await updateBooking(updatedBookingData);
+      await fetchBookingsForDate(selectedDate);
+      handleCloseModal();
+      localStorage.setItem('websankul_studio_bookings', Date.now().toString());
     } catch (error) {
-        console.error("Failed to update booking:", error);
-        alert(error instanceof Error ? error.message : "An unknown error occurred.");
+      console.error("Failed to update booking:", error);
+      alert(error instanceof Error ? error.message : "An unknown error occurred.");
     }
   };
 
@@ -103,30 +106,31 @@ const App: React.FC = () => {
         await deleteBooking(bookingId);
         await fetchBookingsForDate(selectedDate);
         handleCloseModal();
+        localStorage.setItem('websankul_studio_bookings', Date.now().toString());
       } catch (error) {
         console.error("Failed to delete booking:", error);
       }
     }
   };
-  
+
   const handleExportBookings = async (startDate: string, endDate: string) => {
     try {
-        const allBookings = await getAllBookings();
-        const filteredBookings = allBookings.filter(booking => 
-            booking.date >= startDate && booking.date <= endDate
-        );
+      const allBookings = await getAllBookings();
+      const filteredBookings = allBookings.filter(
+        booking => booking.date >= startDate && booking.date <= endDate
+      );
 
-        if (filteredBookings.length === 0) {
-            alert("No bookings found in the selected date range.");
-            return;
-        }
+      if (filteredBookings.length === 0) {
+        alert("No bookings found in the selected date range.");
+        return;
+      }
 
-        const csvData = convertToCSV(filteredBookings, STUDIOS);
-        downloadCSV(csvData, `bookings_${startDate}_to_${endDate}.csv`);
-        setIsExportModalOpen(false);
+      const csvData = convertToCSV(filteredBookings, STUDIOS);
+      downloadCSV(csvData, `bookings_${startDate}_to_${endDate}.csv`);
+      setIsExportModalOpen(false);
     } catch (error) {
-        console.error("Failed to export bookings:", error);
-        alert("An error occurred while exporting bookings.");
+      console.error("Failed to export bookings:", error);
+      alert("An error occurred while exporting bookings.");
     }
   };
 
